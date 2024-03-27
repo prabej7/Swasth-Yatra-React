@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
 });
 
 app.post('/register', async (req, res) => {
-    const { email, username, password } = req.body;
+    const { email, username, password, lat, long } = req.body;
     const isUser = await User.findOne({ $or: [{ username: username }, { email: email }] });
     if (!isUser) {
         bcrypt.genSalt(12, (err, salt) => {
@@ -91,8 +91,8 @@ app.post('/register', async (req, res) => {
                     files: '',
                     fName: '',
                     img: 'img.jpg',
-                    lat: 0,
-                    lon: 0
+                    lat: lat,
+                    lon: long
                 });
                 const user = await newUser.save();
                 res.status(200).json(user);
@@ -204,8 +204,6 @@ app.get('/allUser', async (req, res) => {
     res.status(200).json(allUser);
 });
 
-
-
 app.post('/action', async (req, res) => {
     const { action, _id } = req.body;
     if (action === 'accept') {
@@ -269,6 +267,26 @@ app.get('/add', async (req, res) => {
     await user[0].doctors.push(doctor);
     const data = await user[0].save()
     console.log(data);
+});
+
+app.get('/allAdmin', async (req, res) => {
+    const allAdmin = await User.find({ type: 'admin' });
+    res.status(200).json(allAdmin);
+});
+
+app.post('/updatePending', async (req, res) => {
+    const data = await User.updateOne(
+        {
+            _id: req.body._id
+        },
+        {
+            $set: {
+                type: 'user'
+            }
+        }
+    );
+    console.log(data);
+        res.status(200).json('Updated successfully!');
 })
 
 server.listen(5000, () => {

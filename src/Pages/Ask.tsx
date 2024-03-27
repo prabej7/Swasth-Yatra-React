@@ -1,17 +1,21 @@
 import React, { FormEvent, useState } from "react";
 import Mobile from "./Components/Mobile";
 import { useNavigate } from "react-router-dom";
-
+import axios, { AxiosResponse } from "axios";
+import url from "../url";
+import { useCookies } from "react-cookie";
 interface CheckboxProp {
     label: string;
 }
 
 const Ask: React.FC<CheckboxProp> = ({ label }) => {
     const [checked, setCheck] = useState<string>('p');
+    const [cookie, setCookie] = useCookies(['user']);
     const navigate = useNavigate();
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (checked === 'p') {
+            const response: AxiosResponse = await axios.post(`${url}updatePending`,cookie.user);
             navigate('/account');
         } else if (checked === 'a') {
             navigate('/pending');

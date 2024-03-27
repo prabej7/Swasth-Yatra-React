@@ -51,7 +51,9 @@ const userSchema = ({
     reg: String,
     pan: String,
     files: String,
-    img: String
+    img: String,
+    lat: Number,
+    lon: Number
 });
 
 const User = mongoose.model('user', userSchema);
@@ -88,7 +90,9 @@ app.post('/register', async (req, res) => {
                     pan: '',
                     files: '',
                     fName: '',
-                    img:'img.jpg'
+                    img: 'img.jpg',
+                    lat: 0,
+                    lon: 0
                 });
                 const user = await newUser.save();
                 res.status(200).json(user);
@@ -200,6 +204,8 @@ app.get('/allUser', async (req, res) => {
     res.status(200).json(allUser);
 });
 
+
+
 app.post('/action', async (req, res) => {
     const { action, _id } = req.body;
     if (action === 'accept') {
@@ -257,8 +263,8 @@ app.post('/uploadPic', uploads.single('file'), async (req, res) => {
     res.status(200).json('Profile picture updated successfully!');
 });
 
-app.get('/add',async(req,res)=>{
-    const user = await User.find({type:'user'});
+app.get('/add', async (req, res) => {
+    const user = await User.find({ type: 'user' });
     const doctor = await Doctor.findById('6603f72da6860a0a39055466');
     await user[0].doctors.push(doctor);
     const data = await user[0].save()

@@ -23,7 +23,6 @@ const Account: React.FC = () => {
     const { username, email, _id } = useAppSelector((state) => {
         return state.UserData;
     });
-
     const dispatch = useAppDispatch();
     const userData = useGetUser(cookie.user._id);
     const navigate = useNavigate();
@@ -79,9 +78,9 @@ const Account: React.FC = () => {
                                     <h1 className="text-left mb-5 font-semibold mr-16">Your appointments : </h1>
                                     {userData.doctors.map((doctor: Doctor, index: number) => {
                                         return <div key={doctor._id} className="flex flex-col gap-3 overflow-auto" >
-                                            
+
                                             <div className="docs flex gap-5">
-                                            <h1>{index + 1}. </h1>
+                                                <h1>{index + 1}. </h1>
                                                 <div className="avatar w-20 h-20">
                                                     <div className="  rounded-full">
                                                         <img src={`/uploads/${doctor?.img}`} />
@@ -93,7 +92,7 @@ const Account: React.FC = () => {
                                                     <h1 className="text-xs" >{doctor.attend}</h1>
                                                 </div>
                                             </div>
-                                            
+
                                         </div>
                                     })}
                                 </div>

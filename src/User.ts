@@ -13,6 +13,8 @@ interface User {
     username:string;
     __v:number;
     _id:string;
+    lat: number;
+    lon: number
 }
 
 export default User

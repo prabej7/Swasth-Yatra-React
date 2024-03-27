@@ -19,6 +19,8 @@ const Profile = () => {
         username: '',
         __v: 0,
         _id: '',
+        lat:0,
+        lon:0
     });
     const [cookie, setCookie] = useCookies(['user']);
     const [isHover, setHover] = useState(false);

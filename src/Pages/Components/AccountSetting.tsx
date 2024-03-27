@@ -13,6 +13,7 @@ interface User {
 
 const AccountSetting = () => {
     const [cookie, setCookie] = useCookies(['user']);
+    const [res, setRes] = useState<boolean>(false);
     const [userData, setData] = useState<User>({
         username: '',
         email: '',
@@ -45,19 +46,21 @@ const AccountSetting = () => {
             eSewaNo: userData.eSewaNo
         }
         const response: AxiosResponse = await axios.post(`${url}update`,dataTOBeSent);
-        
-        
+        if(response.status==200){
+            setRes(true);
+        }
     }
 
     useEffect(() => {
         if (cookie.user) {
             axios.post(`${url}getUser`,cookie.user).then((response: AxiosResponse)=>{
                 const { data,status } = response;
-                setData(data);
                 setCookie('user',data,{path:'/'});
-            })
+                setData(cookie.user);
+            });
+            
         }
-    },[])
+    },[res]);
     return (
         <div className="" >
             <h1 className=' font-bold text-2xl'>Account Settings</h1>
@@ -110,8 +113,6 @@ const AccountSetting = () => {
                     />
                     <button className="btn bg-black text-white hover:bg-black " >Update</button>
                 </div>
-
-
             </form>
         </div>
     )

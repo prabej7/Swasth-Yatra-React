@@ -41,9 +41,11 @@ module.exports = {
   },
   theme: {
     extend: {
-      colors:{
-        custom:'#0069ff',
-        crimsonRed:'#dc2626'
+      colors: {
+        custom: '#0069ff',
+        crimsonRed: '#dc2626',
+        customBlue: '#00AEFF',
+        customBlack:'#00000099',
       }
     },
   },

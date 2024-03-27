@@ -2,14 +2,18 @@ import React from 'react';
 import './App.css';
 import { Route, Router, Routes } from 'react-router';
 import Register from './Pages/Register';
-import Home from './Pages/UserPage/Home';
 import Admin from './Pages/Admin';
 import Login from './Pages/Login';
-import Menu from './Pages/Components/Menus';
-import Table from './Pages/Components/Table';
 import AdminDoctors from './Pages/AdminDoctors';
 import AdminSetting from './Pages/AdminSetting';
 import AdminPatients from './Pages/AdminPatients';
+import Home from './Pages/UserPage/Home';
+import Account from './Pages/UserPage/Account';
+import Ask from './Pages/Ask';
+import Pending from './Pages/Pending';
+import MAdmin from './Pages/MainAdmin/MAdmin';
+import MSetting from './Pages/MainAdmin/MSetting';
+import Find from './Pages/UserPage/Find';
 
 function App() {
   return (
@@ -22,6 +26,12 @@ function App() {
         <Route element={<AdminSetting />} path='/admin/setting' />
         <Route element={<AdminPatients />} path='/admin/patients' />
         <Route element={<Home />} path='/' />
+        <Route element={<Account />} path='/account' />
+        <Route element={<Ask label='' />} path='/account-type' />
+        <Route element={<Pending />} path='/pending' />
+        <Route element={<MAdmin />} path='/madmin' />
+        <Route element={<MSetting />} path='/madmin/setting' />
+        <Route element={<Find />} path='/account/find' />
       </Routes>
     </div>
   );

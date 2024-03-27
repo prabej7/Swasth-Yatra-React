@@ -6,13 +6,15 @@ import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../States/hooks";
 import { setUserData } from "../States/Slices/UserData";
+import { Link } from "react-router-dom";
+import Mobile from "./Components/Mobile";
 const socket = io(`${url}`);
 interface User {
     username: string,
     password: string
 }
 
-interface Msg{
+interface Msg {
     text: string,
     color?: string
 }
@@ -20,8 +22,8 @@ interface Msg{
 const Login: React.FC = () => {
     const dispatch = useAppDispatch();
     const [msg, setMsg] = useState<Msg>({
-        text:'',
-        color:''
+        text: '',
+        color: ''
     });
     const [cookie, setCookie] = useCookies(['user']);
     const navigate = useNavigate();
@@ -42,29 +44,30 @@ const Login: React.FC = () => {
             e.preventDefault();
             const response: AxiosResponse = await axios.post(`${url}login`, userData);
             const { status, data } = response;
-            if(status==201){
+            if (status == 201) {
                 setMsg({
-                    text:'Incorrect password',
-                    color:'crimson'
+                    text: 'Incorrect password',
+                    color: 'crimson'
                 });
-            }else if(status==200){
+            } else if (status == 200) {
                 setMsg({
-                    text:'Logging in...',
-                    color:'green'
+                    text: 'Logging in...',
+                    color: 'green'
                 });
-                setCookie('user',data,{path:'/'});
-                let dataToBeSent ={
+                setCookie('user', data, { path: '/' });
+                let dataToBeSent = {
                     username: data.username,
                     email: data.email,
                     _id: data._id
                 }
                 dispatch(setUserData(dataToBeSent));
-                navigate('/admin');
+                navigate('/account');
+
             }
         } catch (err) {
             setMsg({
-                text:'User not found!',
-                color:'crimson'
+                text: 'User not found!',
+                color: 'crimson'
             });
         }
 
@@ -79,26 +82,31 @@ const Login: React.FC = () => {
     }
     return (
         <div className="register">
-            <form onSubmit={handleSubmit} className="flex flex-col w-56 gap-5">
-                <p style={{color:msg.color}}>{msg.text}</p>
-                <input
-                    type="text"
-                    name="username"
-                    className="input "
-                    placeholder="Username"
-                    onChange={handleChange}
-                    value={userData.username}
-                />
-                <input
-                    type="password"
-                    name="password"
-                    className="input"
-                    placeholder="Password"
-                    value={userData.password}
-                    onChange={handleChange}
-                />
-                <button className="btn" type="submit">Login</button>
-            </form>
+            <Mobile>
+                <h1 className="font-bold text-2xl mb-5">Login</h1>
+                <form onSubmit={handleSubmit} className="flex flex-col w-56 gap-5">
+                    <p style={{ color: msg.color }}>{msg.text}</p>
+                    <input
+                        type="text"
+                        name="username"
+                        className="input "
+                        placeholder="Username"
+                        onChange={handleChange}
+                        value={userData.username}
+                    />
+                    <input
+                        type="password"
+                        name="password"
+                        className="input"
+                        placeholder="Password"
+                        value={userData.password}
+                        onChange={handleChange}
+                    />
+                    <button className="btn" type="submit">Login</button>
+                    <p className=" text-xs" >Don't have an account ?<Link to='/register' > Register</Link></p>
+                </form>
+            </Mobile>
+
         </div>
     )
 }

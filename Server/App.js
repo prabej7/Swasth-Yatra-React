@@ -11,6 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const { Server } = require('socket.io');
 const randomString = require('randomstring');
+const { convertToObject } = require('typescript');
 const io = new Server(server, {
     cors: {
         origin: 'http://localhost:3000'
@@ -45,7 +46,12 @@ const userSchema = ({
     type: String,
     doctors: [doctorSchema],
     eSewaName: String,
-    eSewaNo: String
+    eSewaNo: String,
+    fName: String,
+    reg: String,
+    pan: String,
+    files: String,
+    img: String
 });
 
 const User = mongoose.model('user', userSchema);
@@ -63,18 +69,26 @@ const uploads = multer({ storage });
 
 io.on('connection', (socket) => {
 
-})
+});
 
 app.post('/register', async (req, res) => {
     const { email, username, password } = req.body;
     const isUser = await User.findOne({ $or: [{ username: username }, { email: email }] });
-    if (isUser.length == 0) {
+    if (!isUser) {
         bcrypt.genSalt(12, (err, salt) => {
             bcrypt.hash(password, salt, async (err, hash) => {
                 const newUser = new User({
                     username: username,
                     email: email,
-                    password: hash
+                    password: hash,
+                    type: 'pending',
+                    eSewaName: '',
+                    eSewaNo: '',
+                    reg: '',
+                    pan: '',
+                    files: '',
+                    fName: '',
+                    img:'img.jpg'
                 });
                 const user = await newUser.save();
                 res.status(200).json(user);
@@ -115,7 +129,8 @@ app.post('/addDoctor', uploads.single('file'), async (req, res) => {
         name: name,
         type: type,
         img: imgName,
-        attend: 'Present'
+        attend: 'Present',
+
     });
     const saveDoctor = await newDoctor.save();
     user.doctors.push(saveDoctor);
@@ -156,8 +171,98 @@ app.post('/update', async (req, res) => {
                 eSewaNo: eSewaNo
             }
         });
-        console.log(data);
+
+    const user = await User.findById(_id);
     res.status(200).json('Data updated successfully');
+});
+
+app.post('/ask', uploads.single('file'), async (req, res) => {
+    const { name, reg, pan, _id } = req.body;
+    const { filename } = req.file;
+    const data = await User.updateMany(
+        {
+            _id: _id
+        },
+        {
+            $set: {
+                fName: name,
+                reg: reg,
+                pan: pan,
+                files: filename
+            }
+        }
+    );
+    res.status(200).json('Sent request successfully !');
+});
+
+app.get('/allUser', async (req, res) => {
+    const allUser = await User.find();
+    res.status(200).json(allUser);
+});
+
+app.post('/action', async (req, res) => {
+    const { action, _id } = req.body;
+    if (action === 'accept') {
+        const data = await User.updateOne(
+            {
+                _id: _id,
+            },
+            {
+                $set: {
+                    type: 'admin'
+                }
+            }
+        );
+        res.status(200).json('Updated successfully!');
+    } else if (action === 'reject') {
+        const data = User.deleteOne({ _id: _id });
+        res.status(200).json('Updated successfully!');
+    } else if (action === 'pending') {
+        await User.updateOne(
+            {
+                _id: _id,
+            },
+            {
+                $set: {
+                    type: 'pending'
+                }
+            }
+        )
+        res.status(200).json('Done!');
+    }
+});
+
+app.post('/uploadPic', uploads.single('file'), async (req, res) => {
+    const { filename } = req.file;
+    const { _id } = req.body;
+    const user = await User.findById(_id);
+    fs.unlink(`../client/public/uploads/${user.img}`, (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('Deleted !');
+        }
+    });
+    await User.updateOne(
+        {
+            _id: _id
+        },
+        {
+            $set: {
+                img: filename
+            }
+        }
+    );
+
+    res.status(200).json('Profile picture updated successfully!');
+});
+
+app.get('/add',async(req,res)=>{
+    const user = await User.find({type:'user'});
+    const doctor = await Doctor.findById('6603f72da6860a0a39055466');
+    await user[0].doctors.push(doctor);
+    const data = await user[0].save()
+    console.log(data);
 })
 
 server.listen(5000, () => {

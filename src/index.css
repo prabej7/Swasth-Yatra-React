@@ -47,4 +47,18 @@ body{
     margin-left: 25%;
 }
 
+.profile{
+    width: 100%;
+}
+
+::-webkit-scrollbar{
+    display: none;
+}
+
+.leaflet-container{
+    height: 100vh;
+    width: 100vw;
+    z-index: 0;
+}
+
 

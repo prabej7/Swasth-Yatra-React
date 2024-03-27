@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MdDashboard } from "react-icons/md";
 import { Link, useNavigate } from 'react-router-dom';
-import NavBar from './Components/Nav-bar';
+import NavBar from '../Components/Nav-bar';
 import { FaLeaf, FaUserDoctor } from "react-icons/fa6";
 import { MdOutlineSick } from "react-icons/md";
 import { IoIosArrowBack } from "react-icons/io";
@@ -11,16 +11,12 @@ import { IoMenuSharp } from "react-icons/io5"
 import { FaTrashAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useCookies } from 'react-cookie';
-import url from '../url';
-import axios from 'axios';
-import { useAppDispatch, useAppSelector } from '../States/hooks';
-import { setUserData } from '../States/Slices/UserData';
-import Table from './Components/Table';
-import AddDoctors from './Components/AddDoctors';
-import AccountSetting from './Components/AccountSetting';
-import Profile from './Components/Profile';
-const AdminSetting = () => {
-    
+import { useAppDispatch, useAppSelector } from '../../States/hooks';
+import { setUserData } from '../../States/Slices/UserData';
+import Table from '../Components/Table';
+import MDash from './MDash';
+const MAdmin = () => {
+
     const [page, setPage] = useState<string>('dash');
     const dispatch = useAppDispatch();
     const { username, email, _id } = useAppSelector((state) => {
@@ -28,31 +24,17 @@ const AdminSetting = () => {
     })
     const [cookie, setCookie, removeCookie] = useCookies(['user']);
     const navigate = useNavigate();
-    useEffect(()=>{
-        if(cookie && cookie.user){
-            let data = {
-                _id: cookie.user._id,
-            }
-            axios.post(`${url}getUser`,data).then((response)=>{
-                setCookie('user',response.data,{path:'/'});
-            })
-            if(cookie.user.type !== 'admin'){
+
+    useEffect(() => {
+        console.log(cookie);
+        if (!cookie.user) {
+            navigate('/login');
+        }else{
+            if(cookie.user.type!=='main'){
                 navigate('/account');
             }
         }
     });
-    useEffect(() => {
-        if (!(cookie && cookie.user)) {
-            navigate('/login');
-        } else {
-            let data = {
-                username: cookie.user.username,
-                email: cookie.user.email,
-                _id: cookie.user._id
-            };
-            dispatch(setUserData(data));
-        }
-    },[cookie]);
 
     function handleNavigate() {
         navigate('/hello');
@@ -66,6 +48,7 @@ const AdminSetting = () => {
 
     function handleLogout() {
         removeCookie('user');
+        console.log(cookie);
     }
 
     function handlePage(page: string) {
@@ -73,7 +56,7 @@ const AdminSetting = () => {
         navigate(`/${page}`);
     }
     return (
-        <motion.div animate={{ x: click ? -320 : 0 }} style={{paddingLeft:click?'20px':''}} className="h-screen flex">
+        <motion.div animate={{ x: click ? -320 : 0 }} style={{ paddingLeft: click ? '20px' : '' }} className="h-screen flex">
             <IoMenuSharp className='absolute z-10 cursor-pointer text-white text-3xl left-80 ml-5 top-10 ' style={{ color: click ? 'black' : 'black', display: click ? 'block' : 'none' }} onClick={hanldeClick} />
             <motion.div style={{ zIndex: 0 }} data-theme="black" className="menu h-screen w-80"
                 animate={{ x: click ? -320 : 0 }}
@@ -88,15 +71,8 @@ const AdminSetting = () => {
                         <MdDashboard className='text-white text-xl' />
                         <span>Dashboard</span>
                     </div>
-                    <div className="items cursor-pointer" onClick={() => handlePage('admin/doctors')} >
-                        <FaUserDoctor className='text-white text-xl ' />
-                        <span>Doctors</span>
-                    </div>
-                    <div className="items cursor-pointer " onClick={() => handlePage('admin/patients')} >
-                        <MdOutlineSick className='text-white text-xl ' />
-                        <span>Patients</span>
-                    </div>
-                    <div className="items cursor-pointer" onClick={() => handlePage('admin/setting')} >
+
+                    <div className="items cursor-pointer" onClick={() => handlePage('madmin/setting')} >
                         <IoIosSettings className='text-white text-xl cursor-pointer' />
                         <span>Settings</span>
                     </div>
@@ -107,12 +83,11 @@ const AdminSetting = () => {
                 </div>
 
             </motion.div>
-            <div className=" text-left pt-10 pl-10 flex w-full">
-                <AccountSetting />
-                <Profile  />
+            <div className=" text-left pt-10 pl-10">
+                <MDash />
             </div>
         </motion.div>
     );
 };
 
-export default AdminSetting;
+export default MAdmin;

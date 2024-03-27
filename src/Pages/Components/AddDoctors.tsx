@@ -1,13 +1,13 @@
+import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import axios, { AxiosResponse } from "axios";
 import url from "../../url";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { InputFiles } from "typescript";
 import { useCookies } from "react-cookie";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 interface Doctor {
-    name: string,
-    type: string
+    name: string;
+    type: string;
 }
 
 interface Doc {
@@ -27,13 +27,13 @@ interface User {
     doctors: Doc[];
 }
 
-
 interface Msg {
-    text: string,
-    color?: string
+    text: string;
+    color?: string;
 }
 
 const AddDoctors = () => {
+    const allSelect = useRef<HTMLInputElement>(null);
     const [doctors, setDoctors] = useState<User>({
         _id: '',
         email: '',
@@ -55,11 +55,13 @@ const AddDoctors = () => {
     });
     const [file, setFile] = useState<File>();
     const btn = useRef<HTMLButtonElement>(null);
+    const [selected, setSelected] = useState<string[]>([]);
     function handleHold() {
         if (btn.current) {
             btn.current.style.transform = 'scale(0.85)';
         }
     }
+
     function handleRelease() {
         if (btn.current) {
             btn.current.style.transform = 'scale(1)';
@@ -82,18 +84,17 @@ const AddDoctors = () => {
                 }
             });
             setDoctor({
-                name:'',
-                type:''
+                name: '',
+                type: ''
             });
-            if(fileRef.current){
+            if (fileRef.current) {
                 fileRef.current.value = '';
             }
-
         } else {
             notify('Please fillup all fields');
         }
-
     }
+
     function handleChange(e: ChangeEvent<HTMLInputElement>) {
         const { name, value } = e.target;
         setDoctor(prev => ({
@@ -118,14 +119,39 @@ const AddDoctors = () => {
         }
     })
 
-    async function handleDelete(_id:string){
+    async function handleDelete(_id: string) {
         let data = {
             user: cookie.user._id,
             _id: _id
         }
-        const response: AxiosResponse = await axios.post(`${url}delete`,data);
+        const response: AxiosResponse = await axios.post(`${url}delete`, data);
         console.log(response);
     }
+
+    function handleSelect() {
+        if (allSelect.current) {
+            const checkboxes = document.querySelectorAll<HTMLInputElement>('.checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = allSelect.current!.checked;
+            });
+            doctors.doctors.forEach((element)=>{
+                setSelected(prev=>([
+                    ...prev,
+                    element._id
+                ]))
+            })
+        }
+    }
+
+    function handleSel(_id: string) {
+        setSelected(prev => ([
+            ...prev,
+            _id
+        ]));
+        
+
+    }
+
     return (
         <div>
             <h1 className=' font-bold text-2xl'>Doctors</h1>
@@ -134,7 +160,7 @@ const AddDoctors = () => {
                 <input
                     type="text"
                     name="name"
-                    className="input"
+                    className="input rounded"
                     placeholder="Doctor's name"
                     onChange={handleChange}
                     value={doctor.name}
@@ -142,13 +168,14 @@ const AddDoctors = () => {
                 <input
                     type="text"
                     name="type"
-                    className="input"
+                    className="input rounded"
                     placeholder="Specialization"
                     onChange={handleChange}
                     value={doctor.type}
+                    
                 />
-                <input type="file" ref={fileRef}  className="file-input file-input-bordered w-full max-w-xs" onChange={handleInputChange} />
-                <button ref={btn}  onMouseUp={handleRelease} onMouseDown={handleHold} className="btn bg-black text-white transform hover:bg-black">Add</button>
+                <input type="file" ref={fileRef} className="file-input rounded file-input-bordered w-full max-w-xs" onChange={handleInputChange} />
+                <button ref={btn} onMouseUp={handleRelease} onMouseDown={handleHold} className="btn rounded bg-black text-white transform hover:bg-black">Add</button>
             </form>
             <div className="display relative right-4 top-5">
                 <div className="overflow-x-auto ">
@@ -158,7 +185,7 @@ const AddDoctors = () => {
                             <tr>
                                 <th>
                                     <label>
-                                        <input type="checkbox" className="checkbox" />
+                                        <input type="checkbox" className="checkbox" onClick={handleSelect} ref={allSelect} />
                                     </label>
                                 </th>
 
@@ -170,13 +197,12 @@ const AddDoctors = () => {
                             </tr>
                         </thead>
                         <tbody>
-            
                             {doctors.doctors.map((element) => {
                                 return (
                                     <tr key={element._id}>
                                         <th>
                                             <label>
-                                                <input type="checkbox" className="checkbox" />
+                                                <input onClick={() => handleSel(element._id)} type="checkbox" className="checkbox" />
                                             </label>
                                         </th>
                                         <td>
@@ -192,18 +218,14 @@ const AddDoctors = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
-                                            {element.type}
-                                            
-                                        </td>
+                                        <td>{element.type}</td>
                                         <td>Present</td>
                                         <td>
-                                        <button className=' bg-crimsonRed text-white p-2 pl-3 pr-3' onClick={()=>handleDelete(element._id)} >Delete</button>
+                                            <button className=' bg-crimsonRed rounded text-white p-2 pl-3 pr-3' onClick={() => handleDelete(element._id)}>Delete</button>
                                         </td>
                                     </tr>
                                 )
                             })}
-                            
                         </tbody>
                         {/* foot */}
                         <tfoot>
@@ -215,8 +237,10 @@ const AddDoctors = () => {
                                 <th></th>
                             </tr>
                         </tfoot>
-
                     </table>
+                    {selected.map((element)=>{
+                        return <p>{element}</p>
+                    })}
                 </div>
             </div>
             <ToastContainer />

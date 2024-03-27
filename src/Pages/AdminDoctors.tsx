@@ -10,6 +10,8 @@ import { IoLogOut } from "react-icons/io5";
 import { IoMenuSharp } from "react-icons/io5"
 import { FaTrashAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
+import url from '../url';
+import axios from 'axios';
 import { useCookies } from 'react-cookie';
 import { useAppDispatch, useAppSelector } from '../States/hooks';
 import { setUserData } from '../States/Slices/UserData';
@@ -25,7 +27,19 @@ const AdminDoctors = () => {
     const [cookie, setCookie, removeCookie] = useCookies(['user']);
     const [pageCookie, setPageCookie, removePageCookie] = useCookies(['page']);
     const navigate = useNavigate();
-
+    useEffect(()=>{
+        if(cookie && cookie.user){
+            let data = {
+                _id: cookie.user._id,
+            }
+            axios.post(`${url}getUser`,data).then((response)=>{
+                setCookie('user',response.data,{path:'/'});
+            })
+            if(cookie.user.type !== 'admin'){
+                navigate('/account');
+            }
+        }
+    });
     useEffect(() => {
         if (!(cookie && cookie.user)) {
             navigate('/login');
@@ -38,7 +52,7 @@ const AdminDoctors = () => {
             };
             dispatch(setUserData(data));
         }
-    },[]);
+    },[cookie]);
 
     function handleNavigate() {
         navigate('/hello');

@@ -14,6 +14,8 @@ import { useCookies } from 'react-cookie';
 import { useAppDispatch, useAppSelector } from '../States/hooks';
 import { setUserData } from '../States/Slices/UserData';
 import Table from './Components/Table';
+import axios from 'axios';
+import url from '../url';
 const Admin = () => {
     
     const [page, setPage] = useState<string>('dash');
@@ -24,12 +26,23 @@ const Admin = () => {
     const [cookie, setCookie, removeCookie] = useCookies(['user']);
     const [pageCookie, setPageCookie, removePageCookie] = useCookies(['page']);
     const navigate = useNavigate();
-
+    useEffect(()=>{
+        if(cookie && cookie.user){
+            let data = {
+                _id: cookie.user._id,
+            }
+            axios.post(`${url}getUser`,data).then((response)=>{
+                setCookie('user',response.data,{path:'/'});
+            })
+            if(cookie.user.type !== 'admin' && cookie.user.type=='user'){
+                navigate('/account');
+            }
+        }
+    });
     useEffect(() => {
         if (!(cookie && cookie.user)) {
             navigate('/login');
         } else {
-            setPageCookie('page',page,{path:'/'});
             let data = {
                 username: cookie.user.username,
                 email: cookie.user.email,
@@ -37,7 +50,7 @@ const Admin = () => {
             };
             dispatch(setUserData(data));
         }
-    },[]);
+    },[cookie]);
 
     function handleNavigate() {
         navigate('/hello');

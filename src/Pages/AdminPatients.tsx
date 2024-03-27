@@ -14,6 +14,8 @@ import { useCookies } from 'react-cookie';
 import { useAppDispatch, useAppSelector } from '../States/hooks';
 import { setUserData } from '../States/Slices/UserData';
 import Table from './Components/Table';
+import url from '../url';
+import axios from 'axios';
 import Patients from './Components/Patinets';
 const AdminPatients = () => {
     
@@ -25,7 +27,19 @@ const AdminPatients = () => {
     const [cookie, setCookie, removeCookie] = useCookies(['user']);
     const [pageCookie, setPageCookie, removePageCookie] = useCookies(['page']);
     const navigate = useNavigate();
-
+    useEffect(()=>{
+        if(cookie && cookie.user){
+            let data = {
+                _id: cookie.user._id,
+            }
+            axios.post(`${url}getUser`,data).then((response)=>{
+                setCookie('user',response.data,{path:'/'});
+            })
+            if(cookie.user.type !== 'admin'){
+                navigate('/account');
+            }
+        }
+    });
     useEffect(() => {
         if (!(cookie && cookie.user)) {
             navigate('/login');
@@ -38,7 +52,7 @@ const AdminPatients = () => {
             };
             dispatch(setUserData(data));
         }
-    },[]);
+    },[cookie]);
 
     function handleNavigate() {
         navigate('/hello');
@@ -51,7 +65,7 @@ const AdminPatients = () => {
     }
 
     function handleLogout() {
-        removeCookie('user', { path: '/login' });
+        removeCookie('user');
     }
 
     function handlePage(page: string) {

@@ -1,8 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
 import UserData from "./Slices/UserData";
+import getUserData from "./Slices/UserData/getUserData";
 export const store = configureStore({
     reducer:{
-       UserData:UserData 
+       UserData:UserData ,
+       getUserData: getUserData
     }
 });
 

@@ -14,7 +14,7 @@ interface User {
     __v:number;
     _id:string;
     lat: number;
-    lon: number
+    lon: number;
 }
 
 export default User
@@ -34,4 +34,23 @@ export default User
 //     username:'';
 //     __v:0;
 //     _id:'';
+// }
+
+// const initialState: User =  {
+//     doctors:[],
+//     eSewaName:'',
+//     eSewaNo:'',
+//     email:'',
+//     fName:'',
+//     files:'',
+//     img:'',
+//     pan:'',
+//     password:'',
+//     reg:'',
+//     type:'',
+//     username:'',
+//     __v:0,
+//     _id:'',
+//     lat:0,
+//     lon:0
 // }

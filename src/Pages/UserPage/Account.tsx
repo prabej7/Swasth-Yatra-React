@@ -2,14 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../States/hooks";
-import UserData, { setUserData } from "../../States/Slices/UserData";
+import { setMainData } from "../../States/Slices/UserData/getUserData";
 import Mobile from "../Components/Mobile";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import url from "../../url";
 import useGetUser from "../../hooks/userData/useGetUser";
 import User from "../../User";
 import Menu from "../Components/Menu";
-import io from 'socket.io-client';
+
 interface Doctor {
     name: string,
     type: string,
@@ -19,44 +19,29 @@ interface Doctor {
 }
 
 const Account: React.FC = () => {
-    const socket = io('http://localhost:5000');
-    const [render, serRender] = useState<boolean>(false);
-    socket.on('re', (data) => {
-        serRender(!render);
-    })
-    const [cookie, setCookie, removeCookie] = useCookies(['user']);
-    const { username, email, _id } = useAppSelector((state) => {
-        return state.UserData;
-    });
+
     const dispatch = useAppDispatch();
-    const userData = useGetUser(cookie.user._id);
+    const MainUserData = useAppSelector((state) => {
+        return state.getUserData;
+    });
+    const [cookie, setCookie, removeCookie] = useCookies(['user']);
+
     const navigate = useNavigate();
-
+    useGetUser(cookie.user._id);
     useEffect(() => {
-        if (!(cookie && cookie.user)) {
-            navigate('/login');
-        } else {
-            dispatch(setUserData(cookie.user));
-            let data = {
-                _id: cookie.user._id,
+        if (cookie.user) {
+            const { type } = cookie.user;
+            if(type=='admin'){
+                navigate('/admin');
+            }else if(type=='main'){
+                navigate('/main');
             }
-            axios.post(`${url}getUser`, data).then((response) => {
-                setCookie('user', response.data, { path: '/' });
-            })
-
+        } else {
+            navigate('/login');
         }
 
-    }, [socket]);
+    })
 
-    useEffect(() => {
-        if (cookie.user && cookie.user.type === 'admin') {
-            navigate('/admin');
-        } else if (cookie.user.type === 'user') {
-            navigate('/account');
-        } else if (cookie.user.type === 'main') {
-            navigate('/madmin');
-        }
-    }, [socket]);
 
     return (
         <div >
@@ -72,20 +57,19 @@ const Account: React.FC = () => {
                         <div className=" bg-base-200  text-left rounded h-20 w-72 pt-5 mt-16 flex pb-5 gap-5 mb-5 ">
                             <div className="avatar online w-10 h-10 ml-5">
                                 <div className="  rounded-full">
-                                    <img src={`/uploads/${userData?.img}`} />
+                                    <img src={`/uploads/${MainUserData.img}`} />
                                 </div>
                             </div>
                             <div className="user">
-                                <h1>Hi, {userData?.username}</h1>
-                                <h1 className="text-xs" >{userData?.email}</h1>
+                                <h1>Hi, {MainUserData.username}</h1>
+                                <h1 className="text-xs" >{MainUserData.email}</h1>
                             </div>
-
                         </div>
                         <div className="flex justify-center w-screen pr-10 overflow-y-auto overflow-x-hidden h-80">
-                            {userData !== undefined && userData.doctors.length > 0 ?
+                            {MainUserData !== undefined && MainUserData.doctors.length > 0 ?
                                 <div className=" overflow-auto" >
                                     <h1 className="text-left mb-5 font-semibold mr-16">Your appointments : </h1>
-                                    {userData.doctors.map((doctor: Doctor, index: number) => {
+                                    {MainUserData.doctors.map((doctor: Doctor, index: number) => {
                                         return <div key={doctor._id} className="flex flex-col gap-3 overflow-auto" >
 
                                             <div className="docs flex gap-5">

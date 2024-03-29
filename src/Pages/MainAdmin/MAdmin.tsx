@@ -30,6 +30,12 @@ const MAdmin = () => {
         if (!cookie.user) {
             navigate('/login');
         }else{
+            let data = {
+                _id: cookie.user._id,
+                email: cookie.user.email,
+                username : cookie.user.username
+            }
+            dispatch(setUserData(data));
             if(cookie.user.type!=='main'){
                 navigate('/account');
             }

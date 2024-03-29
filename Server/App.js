@@ -14,7 +14,7 @@ const randomString = require('randomstring');
 const { convertToObject } = require('typescript');
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:3000'
+        origin: 'http://localhost:3000',
     }
 });
 
@@ -70,7 +70,9 @@ const storage = multer.diskStorage({
 const uploads = multer({ storage });
 
 io.on('connection', (socket) => {
-
+    socket.on('render',(data)=>{
+        io.emit('re',data);
+    })
 });
 
 app.post('/register', async (req, res) => {
@@ -285,9 +287,12 @@ app.post('/updatePending', async (req, res) => {
             }
         }
     );
-    console.log(data);
-        res.status(200).json('Updated successfully!');
-})
+    io.emit('render',true);
+    res.status(200).json('Updated successfully!');
+
+});
+
+
 
 server.listen(5000, () => {
     console.log('Server is running at port 5000');

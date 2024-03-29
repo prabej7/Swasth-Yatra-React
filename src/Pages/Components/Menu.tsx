@@ -1,7 +1,8 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { IoMdSearch } from "react-icons/io";
 const Menu = () => {
+    const naviagate = useNavigate();
     return (
         <ul className="menu menu-horizontal bg-base-200 rounded-box absolute top-60 mt-72">
             <li>
@@ -10,7 +11,7 @@ const Menu = () => {
                 </Link>
             </li>
             <li>
-                <Link to='/account/find' className="tooltip" data-tip="Search">
+                <Link to='/account/find'  className="tooltip" data-tip="Search">
                     <IoMdSearch  className="h-5 w-5" />
                     
                 </Link>

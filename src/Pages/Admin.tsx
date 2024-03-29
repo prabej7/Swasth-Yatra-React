@@ -16,8 +16,13 @@ import { setUserData } from '../States/Slices/UserData';
 import Table from './Components/Table';
 import axios from 'axios';
 import url from '../url';
+import io from 'socket.io-client';
+
 const Admin = () => {
-    
+    const socket = io('http://localhost:5000');
+    socket.on('re',(data)=>{
+
+    })
     const [page, setPage] = useState<string>('dash');
     const dispatch = useAppDispatch();
     const { username, email, _id } = useAppSelector((state) => {
@@ -26,19 +31,19 @@ const Admin = () => {
     const [cookie, setCookie, removeCookie] = useCookies(['user']);
     const [pageCookie, setPageCookie, removePageCookie] = useCookies(['page']);
     const navigate = useNavigate();
-    useEffect(()=>{
-        if(cookie && cookie.user){
+    useEffect(() => {
+        if (cookie && cookie.user) {
             let data = {
                 _id: cookie.user._id,
             }
-            axios.post(`${url}getUser`,data).then((response)=>{
-                setCookie('user',response.data,{path:'/'});
+            axios.post(`${url}getUser`, data).then((response) => {
+                setCookie('user', response.data, { path: '/' });
             })
-            if(cookie.user.type !== 'admin' && cookie.user.type=='user'){
+            if (cookie.user.type == 'pending') {
                 navigate('/account');
             }
         }
-    });
+    }, [socket]);
     useEffect(() => {
         if (!(cookie && cookie.user)) {
             navigate('/login');
@@ -50,7 +55,7 @@ const Admin = () => {
             };
             dispatch(setUserData(data));
         }
-    },[cookie]);
+    }, [cookie]);
 
     function handleNavigate() {
         navigate('/hello');
@@ -68,11 +73,11 @@ const Admin = () => {
 
     function handlePage(page: string) {
         setPage(page);
-        setPageCookie('page',page,{path:'/admin'});
+        setPageCookie('page', page, { path: '/admin' });
         navigate(`/${page}`);
     }
     return (
-        <motion.div animate={{ x: click ? -320 : 0 }} style={{paddingLeft:click?'20px':''}} className="h-screen flex">
+        <motion.div animate={{ x: click ? -320 : 0 }} style={{ paddingLeft: click ? '20px' : '' }} className="h-screen flex">
             <IoMenuSharp className='absolute z-10 cursor-pointer text-white text-3xl left-80 ml-5 top-10 ' style={{ color: click ? 'black' : 'black', display: click ? 'block' : 'none' }} onClick={hanldeClick} />
             <motion.div style={{ zIndex: 0 }} data-theme="black" className="menu h-screen w-80"
                 animate={{ x: click ? -320 : 0 }}

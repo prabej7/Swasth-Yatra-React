@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../States/hooks";
@@ -9,7 +9,7 @@ import url from "../../url";
 import useGetUser from "../../hooks/userData/useGetUser";
 import User from "../../User";
 import Menu from "../Components/Menu";
-
+import io from 'socket.io-client';
 interface Doctor {
     name: string,
     type: string,
@@ -19,6 +19,11 @@ interface Doctor {
 }
 
 const Account: React.FC = () => {
+    const socket = io('http://localhost:5000');
+    const [render, serRender] = useState<boolean>(false);
+    socket.on('re', (data) => {
+        serRender(!render);
+    })
     const [cookie, setCookie, removeCookie] = useCookies(['user']);
     const { username, email, _id } = useAppSelector((state) => {
         return state.UserData;
@@ -26,6 +31,7 @@ const Account: React.FC = () => {
     const dispatch = useAppDispatch();
     const userData = useGetUser(cookie.user._id);
     const navigate = useNavigate();
+
     useEffect(() => {
         if (!(cookie && cookie.user)) {
             navigate('/login');
@@ -37,17 +43,20 @@ const Account: React.FC = () => {
             axios.post(`${url}getUser`, data).then((response) => {
                 setCookie('user', response.data, { path: '/' });
             })
-            if (cookie.user && cookie.user.type === 'admin') {
-                navigate('/admin');
-            } else if (cookie.user.type === 'user') {
-                navigate('/account');
-            } else if (cookie.user.type === 'main') {
-                navigate('/madmin');
-            }
+
         }
 
-    }, []);
+    }, [socket]);
 
+    useEffect(() => {
+        if (cookie.user && cookie.user.type === 'admin') {
+            navigate('/admin');
+        } else if (cookie.user.type === 'user') {
+            navigate('/account');
+        } else if (cookie.user.type === 'main') {
+            navigate('/madmin');
+        }
+    }, [socket]);
 
     return (
         <div >

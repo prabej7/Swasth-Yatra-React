@@ -6,6 +6,8 @@ import { RxCross1 } from "react-icons/rx";
 import { MdOutlinePendingActions } from "react-icons/md";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router";
+import io from 'socket.io-client';
+import useRerender from "../../hooks/rerender/useRerender";
 interface User {
     email: string,
     fName: string,
@@ -17,9 +19,16 @@ interface User {
 }
 
 const MDash: React.FC = () => {
-    const [cookie, setCookie,removeCookie] = useCookies(['user']);
+    const socket = io('http://localhost:5000');
+    const [render , serRender]= useState<boolean>(false);
+    socket.on('re',(data)=>{
+        serRender(!render);
+    })
+
+    const [cookie, setCookie, removeCookie] = useCookies(['user']);
     const [filter, setFilter] = useState<string>('admin');
     const navigate = useNavigate();
+    const [img, setImg] = useState<string>('');
     const [user, setData] = useState<User[]>([{
         email: '',
         fName: '',
@@ -29,12 +38,12 @@ const MDash: React.FC = () => {
         reg: '',
         _id: ''
     }]);
-    
+
     useEffect(() => {
         axios.get(`${url}allUser`).then((response: AxiosResponse) => {
             setData(response.data);
         });
-    });
+    },[render]);
 
     async function handleAction(value: string, _id: string) {
         let data = {
@@ -42,6 +51,7 @@ const MDash: React.FC = () => {
             _id: _id
         }
         const response: AxiosResponse = await axios.post(`${url}action`, data);
+        socket.emit('render',true);
     }
     function handleChange(e: ChangeEvent<HTMLSelectElement>) {
         const { value } = e.target;
@@ -50,6 +60,15 @@ const MDash: React.FC = () => {
         } else if (value === 'Pending') {
             setFilter('pending');
         }
+    }
+    const [isClose, setClose] = useState<boolean>(false);
+    function handleView(link: string) {
+        setImg(link);
+        setClose(false);
+    }
+
+    function handleClose() {
+        setClose(true);
     }
     return (
         <div>
@@ -79,7 +98,7 @@ const MDash: React.FC = () => {
                     <tbody>
                         {user.filter((element) => {
                             if (filter === 'admin') {
-                                return element.type !== 'user' && element.type!=='main'
+                                return element.type !== 'user' && element.type !== 'main'
                             } else {
                                 return element.type === filter.toLocaleLowerCase();
                             }
@@ -91,7 +110,7 @@ const MDash: React.FC = () => {
                                     <td>{element.reg}</td>
                                     <td>{element.pan}</td>
                                     <td>{element.email}</td>
-                                    <td><a href={`/uploads/${element.files}`} download="" >Download</a></td>
+                                    <td><button onClick={() => handleView(`/uploads/${element.files}`)} >View</button></td>
                                     <td>{element.type}</td>
                                     <td className="flex gap-2">
                                         {element.type !== 'admin' ?
@@ -112,6 +131,12 @@ const MDash: React.FC = () => {
 
                     </tbody>
                 </table>
+            </div>
+            <div className="document absolute z-30 bottom-28 right-96 bg-white rounded" style={{ display: isClose ? 'none' : 'block' }}  >
+                <div className="cross flex flex-row-reverse cursor-pointer relative top-5 right-5" onClick={handleClose} style={{display:img==""?'none':''}} >
+                    <RxCross1 className=" relative text-xl text-black " />
+                </div>
+                <img src={img} />
             </div>
         </div>
     )

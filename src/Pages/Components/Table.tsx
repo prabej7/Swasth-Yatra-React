@@ -35,12 +35,12 @@ const Table: React.FC = () => {
         setRender(true);
     }
     return (
-        <div className="">
+        <div >
             <h1 className=' font-bold text-2xl'>Dashboard</h1>
             <p className=' mt-10 font-semibold '>New Patients</p>
 
             <div className="overflow-x-auto relative right-4">
-                <table className="table">
+                <table className="table overflow-x-auto"  >
                     {/* head */}
                     <thead>
                         <tr>
@@ -53,9 +53,9 @@ const Table: React.FC = () => {
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody >
                         {userData.patinets?.map((element,index:number) => {
-                            return <tr>
+                            return <tr className="" >
                                 <th>{index+1}</th>
                                 <td>{element.name}</td>
                                 <td>9812312345</td>

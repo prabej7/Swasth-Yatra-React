@@ -14,6 +14,7 @@ import Pending from './Pages/Pending';
 import MAdmin from './Pages/MainAdmin/MAdmin';
 import MSetting from './Pages/MainAdmin/MSetting';
 import Find from './Pages/UserPage/Find';
+import VideoCall from './Pages/UserPage/VideoCalling';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
         <Route element={<MAdmin />} path='/madmin' />
         <Route element={<MSetting />} path='/madmin/setting' />
         <Route element={<Find />} path='/account/find' />
+        <Route element={<VideoCall />}  path='/video' />
       </Routes>
     </div>
   );

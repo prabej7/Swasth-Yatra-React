@@ -16,7 +16,7 @@ function useLocation(_id: string) {
                 axios.post(`${url}updatePostion`, data).then((response: AxiosResponse) => {
                     dispatch(setMainData(response.data));
                 }).then(err => {
-                    console.log(err);
+                    
                 })
             }, () => {
 

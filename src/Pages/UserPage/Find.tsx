@@ -1,11 +1,14 @@
 import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import {  Link, useNavigate } from "react-router-dom";
+
+import { Link, useNavigate } from "react-router-dom";
 import Mobile from "../Components/Mobile";
 import Menu from "../Components/Menu";
 import { CiSearch } from "react-icons/ci";
 import { useMapEvents } from "react-leaflet";
-// import L from "leaflet";
-// import 'leaflet-routing-machine';
+import { FaUserDoctor } from "react-icons/fa6";
+import L from "leaflet";
+import 'leaflet-routing-machine';
+import { FaRoute } from "react-icons/fa";
 import Form from "../Components/Form";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
@@ -31,7 +34,7 @@ interface Location {
 
 const Find: React.FC = () => {
     const [cookie, setCookie, removeCookie] = useCookies(['user']);
-    const[qr, setQr] = useState<string>('');
+    const [qr, setQr] = useState<string>('');
     useGetUser(cookie.user._id);
     const MainUserData = useAppSelector((state) => {
         return state.getUserData;
@@ -61,9 +64,11 @@ const Find: React.FC = () => {
 
     // Concatenate year, month, and day into a single string
     const concatenatedDate = `${year}-${month}-${day}`;
-    console.log(concatenatedDate);
     const [date, setDate] = useState<string>(concatenatedDate);
-    
+    const [hosLoction, setHostLocation] = useState<Location>({
+        lat: 0,
+        lon: 0
+    });
     useEffect(() => {
         axios.get(`http://localhost:5000/allAdmin`).then((response: AxiosResponse) => {
             const { data, status } = response;
@@ -83,16 +88,20 @@ const Find: React.FC = () => {
                 console.log(err);
             })
         }
-
+        
     }, [])
+
     function MyMapComponent() {
         const map = useMap();
-        // L.Routing.control({
-        //     waypoints: [
-        //         L.latLng(location.lat, location.lon),
-        //         L.latLng(28.04, 85.87)
-        //     ]
-        // }).addTo(map);
+        L.Routing.control({
+            waypoints: [
+                L.latLng(MainUserData.lat, MainUserData.lon),
+                L.latLng(hosLoction.lat, hosLoction.lon)
+            ],
+            
+            
+        }).addTo(map);
+        
         map.setView([location.lat, location.lon], map.getZoom(), {
             animate: true,
             duration: 1,
@@ -143,37 +152,46 @@ const Find: React.FC = () => {
     const [display, setDisplay] = useState<string>('');
     const [click, setClick] = useState<boolean>(false);
     const [selected, setSelected] = useState({
-        name:'',
-        _id:''
+        name: '',
+        _id: ''
     });
     const [doc, setDoc] = useState<string>('');
     async function handleClick(_id: string) {
         setClick(true);
         setSelected({
-            name:'',
-            _id:''
+            name: '',
+            _id: ''
         });
         setDoctors([]);
         const user = userData.filter((user) => {
             return user._id == _id
         });
         setSelected({
-            name:user[0].fName,
-            _id:user[0]._id
+            name: user[0].fName,
+            _id: user[0]._id
         });
         user[0].doctors.map((element) => {
             setDoctors(prev => ([...prev, element]));
         });
-        qrCode.toDataURL(`{"eSewa_id":"${user[0].eSewaName}","name":"${user[0].eSewaNo}"}`, function (err:Error, url:string) {
+        qrCode.toDataURL(`{"eSewa_id":"${user[0].eSewaName}","name":"${user[0].eSewaNo}"}`, function (err: Error, url: string) {
             setQr(url);
-          })
+        })
     }
     const [form, setForm] = useState<boolean>(false);
     const [appoint, setAppoont] = useState<string>('');
+
     function handleAppointment(Name: string, _id: string) {
         setDoc(_id);
         setAppoont(Name);
         setForm(true);
+    }
+
+    function handleDirection(postion: Location) {
+        console.log(postion);
+        setHostLocation({
+            lat: postion.lat,
+            lon: postion.lon
+        });
     }
     return (
         <div>
@@ -207,15 +225,15 @@ const Find: React.FC = () => {
                         </div>
                         {form ?
                             <div className="" >
-                               <Form isForm={(isTrue)=>{
-                                if(isTrue){
-                                    setTimeout(()=>{
-                                        setClick(false);
-                                        setForm(false);
-                                        setAppoont('');
-                                    },3000);
-                                }
-                               }} date={date} hospital={selected._id} appoint={appoint} MainUserData={{username: MainUserData.username}} qr={qr} doctor_id={doc} />
+                                <Form isForm={(isTrue) => {
+                                    if (isTrue) {
+                                        setTimeout(() => {
+                                            setClick(false);
+                                            setForm(false);
+                                            setAppoont('');
+                                        }, 3000);
+                                    }
+                                }} date={date} hospital={selected._id} appoint={appoint} MainUserData={{ username: MainUserData.username }} qr={qr} doctor_id={doc} />
 
                             </div>
                             :
@@ -244,22 +262,34 @@ const Find: React.FC = () => {
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    <Marker icon={userIcon} position={[userLocation.lat, userLocation.lon]} >
+                    <Marker icon={userIcon} position={[MainUserData.lat, MainUserData.lon]} >
                         <Popup>
                             <h1>You</h1>
                         </Popup>
                     </Marker>
                     {userData.map((user) => {
-                        return <Marker icon={customeIcon} position={[user.lat, user.lon]} >
-                            <Popup>
-                                <div onClick={() => handleClick(user._id)}>
+                        return <div  ><Marker icon={customeIcon} position={[user.lat, user.lon]} >
+                            <Popup >
+                                <div >
+
                                     <img className="rounded mb-5 mt-5" src={`/uploads/${user.img}`} />
                                     <h1 className="font-bold text-xl -mb-5 " >{user.fName}</h1>
                                     <p className="text-xs" >{user.email}</p>
+                                    <div className="flex gap-3" >
+                                        <div className=" flex justify-evenly items-center left-60 top-72 cursor-pointer  bg-black px-3 py-3  rounded-full"
+                                            onClick={() => handleDirection({ lat: user.lat, lon: user.lon })}  >
+                                            <FaRoute className=" text-white text-xl" />
+                                        </div>
+                                        <div className=" flex justify-evenly items-center left-60 top-72 cursor-pointer  bg-black px-3 py-3  rounded-full"
+                                            onClick={() => handleDirection({ lat: user.lat, lon: user.lon })}  >
+                                            <FaUserDoctor className=" text-white text-xl" onClick={() => handleClick(user._id)} />
+                                        </div>
+                                    </div>
+
                                 </div>
 
                             </Popup>
-                        </Marker>
+                        </Marker></div>
                     })}
 
                     <MyMapComponent />

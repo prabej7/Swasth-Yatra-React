@@ -19,6 +19,15 @@ const initialState: User = {
     _id: '',
     lat: 0,
     lon: 0,
+    patinets:[{
+        date:'string',
+        doctor:'',
+        name:'',
+        receipt:'',
+        __v:0,
+        _id:'',
+    }],
+    appointments:[]
 }
 
 const getUserData = createSlice({
@@ -26,7 +35,7 @@ const getUserData = createSlice({
     name: 'getUserData',
     reducers: {
         setMainData: (state, action: PayloadAction<User>) => {
-            const { doctors, eSewaName, eSewaNo, email, fName, files, img, pan, password, reg, type, username, __v, _id, lat, lon } = action.payload;
+            const { doctors, eSewaName, eSewaNo, email, fName, files, img, pan, password, reg, type, username, __v, _id, lat, lon,patinets, appointments } = action.payload;
             state.doctors = doctors;
             state.eSewaName = eSewaName;
             state.eSewaNo = eSewaNo;
@@ -43,6 +52,8 @@ const getUserData = createSlice({
             state._id = _id;
             state.lat = lat;
             state.lon = lon;
+            state.patinets = patinets;
+            state.appointments = appointments;
         }
     }
 });

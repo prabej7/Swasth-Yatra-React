@@ -9,39 +9,39 @@ import url from "../../url";
 import useGetUser from "../../hooks/userData/useGetUser";
 import User from "../../User";
 import Menu from "../Components/Menu";
-
+import io from "socket.io-client";
+import { MdDelete } from "react-icons/md";
+import concatenatedDate from "../../Date";
 interface Doctor {
     name: string,
     type: string,
     img: string,
     attend: string,
-    _id: string
+    _id: string,
+    date: string,
+    doctor_id: string
 }
 
 const Account: React.FC = () => {
+    const [cookie, setCookie, removeCookie] = useCookies(['user']);
 
-    const dispatch = useAppDispatch();
+    useGetUser(cookie.user._id);
+
     const MainUserData = useAppSelector((state) => {
         return state.getUserData;
     });
-    const [cookie, setCookie, removeCookie] = useCookies(['user']);
 
     const navigate = useNavigate();
-    useGetUser(cookie.user._id);
+
     useEffect(() => {
-        if (cookie.user) {
-            const { type } = cookie.user;
-            if(type=='admin'){
-                navigate('/admin');
-            }else if(type=='main'){
-                navigate('/main');
-            }
-        } else {
-            navigate('/login');
+        if (cookie.user && cookie.user.type === 'admin') {
+            navigate('/admin');
+        } else if (cookie.user.type === 'main') {
+            navigate('/madmin');
         }
+    });
 
-    })
-
+    const today = new Date();
 
     return (
         <div >
@@ -65,28 +65,52 @@ const Account: React.FC = () => {
                                 <h1 className="text-xs" >{MainUserData.email}</h1>
                             </div>
                         </div>
-                        <div className="flex justify-center w-screen pr-10 overflow-y-auto overflow-x-hidden h-80">
-                            {MainUserData !== undefined && MainUserData.doctors.length > 0 ?
-                                <div className=" overflow-auto" >
+                        <div className="flex justify-center w-screen pr-10 overflow-y-auto  h-80">
+                            {MainUserData && MainUserData.appointments !== undefined && MainUserData.appointments.length > 0 ?
+                                <div className=" overflow-auto flex flex-col gap-5 ml-10" >
                                     <h1 className="text-left mb-5 font-semibold mr-16">Your appointments : </h1>
-                                    {MainUserData.doctors.map((doctor: Doctor, index: number) => {
-                                        return <div key={doctor._id} className="flex flex-col gap-3 overflow-auto" >
+                                    {MainUserData.appointments.map((doctor: Doctor, index: number) => {
+                                        const appointmentDate = new Date(doctor.date);
+                                        const differenceInMs = appointmentDate.getTime() - today.getTime();
+                                        const differenceInDays = Math.ceil(differenceInMs / (1000 * 60 * 60 * 24));
 
-                                            <div className="docs flex gap-5">
-                                                <h1>{index + 1}. </h1>
-                                                <div className="avatar w-20 h-20">
-                                                    <div className="  rounded-full">
-                                                        <img src={`/uploads/${doctor?.img}`} />
+                                        let message = '';
+
+                                        if (differenceInDays > 0) {
+                                            message = `${differenceInDays} days left.`;
+                                        } else if (differenceInDays === 0) {
+                                            message = "Appointment is today.";
+                                        } else {
+                                            message = "Expired";
+                                        }
+
+                                        return (
+                                            <div key={doctor?._id} className="flex flex-col gap-3">
+                                                <div className="collapse bg-base-200">
+                                                    <input type="checkbox" />
+                                                    <div className="collapse-title text-xl font-medium">
+                                                        <div className="docs flex gap-5">
+                                                            <h1>{index + 1}. </h1>
+                                                            <div className="avatar w-20 h-20">
+                                                                <div className="  rounded-full">
+                                                                    <img src={`/uploads/${doctor?.img}`} />
+                                                                </div>
+                                                            </div>
+                                                            <div className=" text-left flex flex-col justify-center">
+                                                                <h1 className=" text-sm" >{doctor?.name}</h1>
+                                                                <h1 className="text-xs" >{doctor?.type}</h1>
+                                                                <h1 className="text-xs" >{doctor?.attend}</h1>
+                                                                <p className="text-xs" >{doctor.date}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="collapse-content">
+                                                        
+                                                        <p className=" text-sm" >{message}</p>
                                                     </div>
                                                 </div>
-                                                <div className=" text-left flex flex-col justify-center">
-                                                    <h1 className=" text-sm" >{doctor.name}</h1>
-                                                    <h1 className="text-xs" >{doctor.type}</h1>
-                                                    <h1 className="text-xs" >{doctor.attend}</h1>
-                                                </div>
                                             </div>
-
-                                        </div>
+                                        );
                                     })}
                                 </div>
                                 :

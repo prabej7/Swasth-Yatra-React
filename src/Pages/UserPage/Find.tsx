@@ -1,11 +1,12 @@
 import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import {  Link, useNavigate } from "react-router-dom";
 import Mobile from "../Components/Mobile";
 import Menu from "../Components/Menu";
 import { CiSearch } from "react-icons/ci";
 import { useMapEvents } from "react-leaflet";
 // import L from "leaflet";
 // import 'leaflet-routing-machine';
+import Form from "../Components/Form";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 import axios, { AxiosResponse } from "axios";
@@ -14,6 +15,14 @@ import User from "../../User";
 import { Icon } from "leaflet";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useCookies } from "react-cookie";
+import useGetUser from "../../hooks/userData/useGetUser";
+import { useAppSelector } from "../../States/hooks";
+import useLocation from "../../hooks/loaction/useLocation";
+import useDoctor from "../../hooks/useDoctors/useDoctor";
+import { motion } from "framer-motion";
+import { LuCalendarPlus } from "react-icons/lu";
+const qrCode = require('qrcode');
 
 interface Location {
     lat: number,
@@ -21,21 +30,40 @@ interface Location {
 }
 
 const Find: React.FC = () => {
+    const [cookie, setCookie, removeCookie] = useCookies(['user']);
+    const[qr, setQr] = useState<string>('');
+    useGetUser(cookie.user._id);
+    const MainUserData = useAppSelector((state) => {
+        return state.getUserData;
+    });
+    const navigate = useNavigate();
     const notify = (text: string) => toast.error(text);
     const [place, setPlace] = useState<string>('');
     const [location, setLocation] = useState({
         lat: 27.7097467,
         lon: 85.32473286318762
-
     });
+
+    useLocation(cookie.user._id);
     const [zoomLevel, setZoomLevel] = useState<number>(13);
     const [userLocation, setUserLocation] = useState({
-        lat: 27.7097467,
-        lon: 85.32473286318762
+        lat: MainUserData.lat,
+        lon: MainUserData.lon
     });
 
     const [userData, setUserData] = useState<User[]>([]);
+    const currentDate = new Date(); // Get the current date
 
+    // Extract individual date components
+    const year = currentDate.getFullYear();
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // Month starts from 0, so add 1 and pad with zero if necessary
+    const day = currentDate.getDate().toString().padStart(2, '0'); // Pad with zero if necessary
+
+    // Concatenate year, month, and day into a single string
+    const concatenatedDate = `${year}-${month}-${day}`;
+    console.log(concatenatedDate);
+    const [date, setDate] = useState<string>(concatenatedDate);
+    
     useEffect(() => {
         axios.get(`http://localhost:5000/allAdmin`).then((response: AxiosResponse) => {
             const { data, status } = response;
@@ -48,15 +76,15 @@ const Find: React.FC = () => {
                     lon: position.coords.longitude
                 });
                 setUserLocation({
-                    lat: position.coords.latitude,
-                    lon: position.coords.longitude
+                    lat: MainUserData.lat,
+                    lon: MainUserData.lon
                 });
             }, (err) => {
                 console.log(err);
             })
         }
-    }, [])
 
+    }, [])
     function MyMapComponent() {
         const map = useMap();
         // L.Routing.control({
@@ -105,7 +133,48 @@ const Find: React.FC = () => {
         const { value } = e.target;
         setPlace(value);
     }
-
+    const [doctors, setDoctors] = useState([{
+        name: '',
+        img: '',
+        attend: '',
+        type: '',
+        _id: ''
+    }]);
+    const [display, setDisplay] = useState<string>('');
+    const [click, setClick] = useState<boolean>(false);
+    const [selected, setSelected] = useState({
+        name:'',
+        _id:''
+    });
+    const [doc, setDoc] = useState<string>('');
+    async function handleClick(_id: string) {
+        setClick(true);
+        setSelected({
+            name:'',
+            _id:''
+        });
+        setDoctors([]);
+        const user = userData.filter((user) => {
+            return user._id == _id
+        });
+        setSelected({
+            name:user[0].fName,
+            _id:user[0]._id
+        });
+        user[0].doctors.map((element) => {
+            setDoctors(prev => ([...prev, element]));
+        });
+        qrCode.toDataURL(`{"eSewa_id":"${user[0].eSewaName}","name":"${user[0].eSewaNo}"}`, function (err:Error, url:string) {
+            setQr(url);
+          })
+    }
+    const [form, setForm] = useState<boolean>(false);
+    const [appoint, setAppoont] = useState<string>('');
+    function handleAppointment(Name: string, _id: string) {
+        setDoc(_id);
+        setAppoont(Name);
+        setForm(true);
+    }
     return (
         <div>
             <form onSubmit={handleSubmit} className=" absolute flex top-28 z-10 gap-2" style={{ left: '536px' }} >
@@ -118,6 +187,58 @@ const Find: React.FC = () => {
                 <button className="btn" ><CiSearch className=" text-xl" /></button>
             </form>
             <Mobile >
+                <motion.div className="flex absolute z-50 card w-72 bg-base-100 shadow-xl h-96 rounded" style={{ display: display }} animate={{ y: click ? '0px' : '500px' }}  >
+                    <div className="card-body">
+
+                        <div className=" flex justify-around items-center gap-1 mb-5">
+                            <div className="head">
+                                <h1 className="font-bold text-xl" >{selected?.name}</h1>
+                            </div>
+
+                            <div className="btn1">
+                                <button className="btn btn-square btn-sm" onClick={() => {
+                                    setClick(false);
+
+                                }} >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+
+                        </div>
+                        {form ?
+                            <div className="" >
+                               <Form isForm={(isTrue)=>{
+                                if(isTrue){
+                                    setTimeout(()=>{
+                                        setClick(false);
+                                        setForm(false);
+                                        setAppoont('');
+                                    },3000);
+                                }
+                               }} date={date} hospital={selected._id} appoint={appoint} MainUserData={{username: MainUserData.username}} qr={qr} doctor_id={doc} />
+
+                            </div>
+                            :
+                            <div className="overflow-hidden">
+
+                                {doctors.map((doctor, index) => (
+                                    <motion.div key={index} className="flex items-center mb-4 " animate={{ y: form ? '500px' : '0px' }} >
+
+                                        <img className="rounded-full mr-2" src={`/uploads/${doctor.img}`} alt={doctor.name} style={{ width: '50px', height: '50px', objectFit: 'cover' }} />
+                                        <div className="text-left min-w-32  break-words" style={{ minWidth: '130px' }} >
+                                            <h1 className="font-medium " >{doctor.name}</h1>
+                                            <p className=" text-sm" >{doctor.type}</p>
+                                        </div>
+                                        <button className=" bg-crimsonRed rounded text-white h-10 w-44 flex justify-center items-center" onClick={() => handleAppointment(doctor.name, doctor._id)} ><LuCalendarPlus className="text-xl" /></button>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        }
+
+
+                    </div>
+                </motion.div>
+                <div className="" ></div>
                 <MapContainer center={[location.lat, location.lon]} zoom={zoomLevel} >
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -131,7 +252,12 @@ const Find: React.FC = () => {
                     {userData.map((user) => {
                         return <Marker icon={customeIcon} position={[user.lat, user.lon]} >
                             <Popup>
-                                {user.fName} <br /> {user.email}
+                                <div onClick={() => handleClick(user._id)}>
+                                    <img className="rounded mb-5 mt-5" src={`/uploads/${user.img}`} />
+                                    <h1 className="font-bold text-xl -mb-5 " >{user.fName}</h1>
+                                    <p className="text-xs" >{user.email}</p>
+                                </div>
+
                             </Popup>
                         </Marker>
                     })}

@@ -8,6 +8,7 @@ export default function useGetUser(_id: string){
     const [userData, setUserData] = useState<User>();
     const dispatch = useAppDispatch();
     useEffect(()=>{
+
         let data = {
             _id: _id
         }

@@ -30,12 +30,33 @@ mongoose.connect('mongodb://localhost:27017/SwasthaYatra').then(() => {
     console.log(err);
 });
 
+const patientsSchema = new mongoose.Schema({
+    name: String,
+    receipt: String,
+    doctor: String,
+    date: String,
+    number: String
+});
+
+const Patinets = mongoose.model('patient', patientsSchema);
+
 const doctorSchema = mongoose.Schema({
     name: String,
     type: String,
     img: String,
     attend: String
 });
+
+const appointmentSchema = new mongoose.Schema({
+    name: String,
+    type: String,
+    img: String,
+    attend: String,
+    doctor_id:  String,
+    date: String
+});
+
+const Appointment = mongoose.model('appointment',appointmentSchema);
 
 const Doctor = mongoose.model('doctor', doctorSchema);
 
@@ -53,7 +74,9 @@ const userSchema = ({
     files: String,
     img: String,
     lat: Number,
-    lon: Number
+    lon: Number,
+    patinets: [patientsSchema],
+    appointments: [appointmentSchema]
 });
 
 const User = mongoose.model('user', userSchema);
@@ -70,8 +93,8 @@ const storage = multer.diskStorage({
 const uploads = multer({ storage });
 
 io.on('connection', (socket) => {
-    socket.on('render',(data)=>{
-        io.emit('re',data);
+    socket.on('render', (data) => {
+        io.emit('re', data);
     })
 });
 
@@ -164,7 +187,7 @@ app.post('/getUser', async (req, res) => {
 });
 
 app.post('/update', async (req, res) => {
-    const { username, email, eSewaName, eSewaNo, original } = req.body;
+    const { username, email, eSewaName, eSewaNo, original, _id } = req.body;
 
     const data = await User.updateOne({
         username: original
@@ -287,12 +310,54 @@ app.post('/updatePending', async (req, res) => {
             }
         }
     );
-    io.emit('render',true);
+    io.emit('render', true);
     res.status(200).json('Updated successfully!');
 
 });
 
+app.post('/updatePostion', async (req, res) => {
+    const { _id, lat, lon } = req.body;
+    const data = await User.updateOne({ _id: _id }, { $set: { lat: lat, lon: lon } });
+    const user = await User.findById(_id);
+    res.status(200).json(user);
+});
 
+app.post('/appointment', uploads.single('file'), async (req, res) => {
+    const { hospital, username, doctor, date, doctor_id } = req.body;
+    const hos = await User.findById(hospital);
+    const user = await User.find({ username: username });
+    const d = await Doctor.findById(doctor_id);
+    const newAppointment = new Appointment({
+        name: d.name,
+        type: d.type,
+        img: d.img,
+        attend: d.attend,
+        doctor_id: d._id,
+        date: date
+    });
+    const savedAppointment = await newAppointment.save();
+    user[0].appointments.push(savedAppointment);
+    await user[0].save();
+    const newPatient = new Patinets({
+        name: user[0].username,
+        date: date,
+        receipt: req.file.filename,
+        doctor: doctor
+    });
+    const patientsSaved = await newPatient.save();
+    hos.patinets.push(patientsSaved);
+    const data = await hos.save();
+
+    res.status(200).json('Appointed successfully');
+});
+
+app.post('/deletePatient', async (req, res) => {
+    const { _id, hos } = req.body;
+    console.log(_id, hos);
+    const data = await User.updateOne({ _id: hos }, { $pull: { patinets: { _id: _id } } });
+    await Patinets.deleteOne({_id:_id});
+    res.status(200).json('Deleted successfully!');
+})
 
 server.listen(5000, () => {
     console.log('Server is running at port 5000');

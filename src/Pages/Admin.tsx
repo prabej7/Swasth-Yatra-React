@@ -17,12 +17,11 @@ import Table from './Components/Table';
 import axios from 'axios';
 import url from '../url';
 import io from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 
 const Admin = () => {
-    const socket = io('http://localhost:5000');
-    socket.on('re',(data)=>{
-
-    })
+    const [socket, setSocket] = useState<Socket>()
+    const [render, setRender] = useState<boolean>(false);
     const [page, setPage] = useState<string>('dash');
     const dispatch = useAppDispatch();
     const { username, email, _id } = useAppSelector((state) => {
@@ -31,7 +30,18 @@ const Admin = () => {
     const [cookie, setCookie, removeCookie] = useCookies(['user']);
     const [pageCookie, setPageCookie, removePageCookie] = useCookies(['page']);
     const navigate = useNavigate();
+
+    useEffect(()=>{
+        const newSocket:Socket = io('http://localhost:5000');
+        setSocket(newSocket);
+        newSocket.on('re', (data) => {
+            setRender(true);
+        })
+    },[]);
+
     useEffect(() => {
+
+
         if (cookie && cookie.user) {
             let data = {
                 _id: cookie.user._id,

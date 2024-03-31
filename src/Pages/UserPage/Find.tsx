@@ -88,20 +88,21 @@ const Find: React.FC = () => {
                 console.log(err);
             })
         }
-        
+
     }, [])
 
     function MyMapComponent() {
         const map = useMap();
-        L.Routing.control({
+        const routingControl = L.Routing.control({
             waypoints: [
                 L.latLng(MainUserData.lat, MainUserData.lon),
                 L.latLng(hosLoction.lat, hosLoction.lon)
             ],
-            
-            
-        }).addTo(map);
-        
+            routeWhileDragging: true,
+            show: false
+
+        });
+        routingControl.addTo(map);
         map.setView([location.lat, location.lon], map.getZoom(), {
             animate: true,
             duration: 1,
@@ -195,16 +196,19 @@ const Find: React.FC = () => {
     }
     return (
         <div>
-            <form onSubmit={handleSubmit} className=" absolute flex top-28 z-10 gap-2" style={{ left: '536px' }} >
-                <input
-                    className="input rounded"
-                    placeholder="Search..."
-                    onChange={handleChange}
-                    value={place}
-                />
-                <button className="btn" ><CiSearch className=" text-xl" /></button>
-            </form>
+
             <Mobile >
+                <div className="form-container absolute top-10 left-3 w-full z-50 ">
+                    <form onSubmit={handleSubmit} className=" flex top-28 z-10 gap-2" style={{ left: '536px' }} >
+                        <input
+                            className="input rounded"
+                            placeholder="Search..."
+                            onChange={handleChange}
+                            value={place}
+                        />
+                        <button className="btn" ><CiSearch className=" text-xl" /></button>
+                    </form>
+                </div>
                 <motion.div className="flex absolute z-50 card w-72 bg-base-100 shadow-xl h-96 rounded" style={{ display: display }} animate={{ y: click ? '0px' : '500px' }}  >
                     <div className="card-body">
 
@@ -256,46 +260,49 @@ const Find: React.FC = () => {
 
                     </div>
                 </motion.div>
-                <div className="" ></div>
-                <MapContainer center={[location.lat, location.lon]} zoom={zoomLevel} >
-                    <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    <Marker icon={userIcon} position={[MainUserData.lat, MainUserData.lon]} >
-                        <Popup>
-                            <h1>You</h1>
-                        </Popup>
-                    </Marker>
-                    {userData.map((user) => {
-                        return <div  ><Marker icon={customeIcon} position={[user.lat, user.lon]} >
-                            <Popup >
-                                <div >
+                <div className="map-container relative h-full" >
+                    <MapContainer center={[location.lat, location.lon]} zoom={zoomLevel} >
+                        <TileLayer
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                        <Marker icon={userIcon} position={[MainUserData.lat, MainUserData.lon]} >
+                            <Popup>
+                                <h1>You</h1>
+                            </Popup>
+                        </Marker>
+                        {userData.map((user) => {
+                            return <div  ><Marker icon={customeIcon} position={[user.lat, user.lon]} >
+                                <Popup >
+                                    <div >
 
-                                    <img className="rounded mb-5 mt-5" src={`/uploads/${user.img}`} />
-                                    <h1 className="font-bold text-xl -mb-5 " >{user.fName}</h1>
-                                    <p className="text-xs" >{user.email}</p>
-                                    <div className="flex gap-3" >
-                                        <div className=" flex justify-evenly items-center left-60 top-72 cursor-pointer  bg-black px-3 py-3  rounded-full"
-                                            onClick={() => handleDirection({ lat: user.lat, lon: user.lon })}  >
-                                            <FaRoute className=" text-white text-xl" />
+                                        <img className="rounded mb-5 mt-5" src={`/uploads/${user.img}`} />
+                                        <h1 className="font-bold text-xl -mb-5 " >{user.fName}</h1>
+                                        <p className="text-xs" >{user.email}</p>
+                                        <div className="flex gap-3" >
+                                            <div className=" flex justify-evenly items-center left-60 top-72 cursor-pointer  bg-black px-3 py-3  rounded-full"
+                                                onClick={() => handleDirection({ lat: user.lat, lon: user.lon })}  >
+                                                <FaRoute className=" text-white text-xl" />
+                                            </div>
+                                            <div className=" flex justify-evenly items-center left-60 top-72 cursor-pointer  bg-black px-3 py-3  rounded-full"
+                                                onClick={() => handleDirection({ lat: user.lat, lon: user.lon })}  >
+                                                <FaUserDoctor className=" text-white text-xl" onClick={() => handleClick(user._id)} />
+                                            </div>
                                         </div>
-                                        <div className=" flex justify-evenly items-center left-60 top-72 cursor-pointer  bg-black px-3 py-3  rounded-full"
-                                            onClick={() => handleDirection({ lat: user.lat, lon: user.lon })}  >
-                                            <FaUserDoctor className=" text-white text-xl" onClick={() => handleClick(user._id)} />
-                                        </div>
+
                                     </div>
 
-                                </div>
+                                </Popup>
+                            </Marker></div>
+                        })}
 
-                            </Popup>
-                        </Marker></div>
-                    })}
+                        <MyMapComponent />
+                    </MapContainer>
+                </div>
+         
+                    <Menu />
+  
 
-                    <MyMapComponent />
-                </MapContainer>
-
-                <Menu />
             </Mobile>
             <ToastContainer />
         </div>

@@ -61,4 +61,8 @@ body{
     z-index: 0;
 }
 
+.leaflet-routing-alt{
+    display: none;
+}
+
 

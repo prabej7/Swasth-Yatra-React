@@ -1,11 +1,14 @@
 import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import url from "../url";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import axios, { AxiosResponse } from "axios";
 import { useCookies } from "react-cookie";
 import { Link, useNavigate } from "react-router-dom";
 import Mobile from "./Components/Mobile";
 const socket = io(`${url}`);
+
 interface User {
     email: string,
     username: string,
@@ -15,33 +18,34 @@ interface User {
 }
 
 const Register: React.FC = () => {
+    const notify = (text:string) => toast.error(text);
     const [cookie, setCookie] = useCookies(['user']);
     const navigate = useNavigate();
     const [postion, setPosition] = useState({
-        lat:0,
-        lon:0
+        lat: 0,
+        lon: 0
     });
     const [userData, setUserData] = useState<User>({
         username: '',
         email: '',
         password: '',
-        long:0,
-        lat:0
+        long: 0,
+        lat: 0
     });
 
-    useEffect(()=>{
-        if(navigator){
-            navigator.geolocation.getCurrentPosition((position)=>{
+    useEffect(() => {
+        if (navigator) {
+            navigator.geolocation.getCurrentPosition((position) => {
                 setPosition({
-                    lat:position.coords.latitude,
+                    lat: position.coords.latitude,
                     lon: position.coords.longitude
                 });
-            },(err)=>{
+            }, (err) => {
 
             })
         }
-    },[]);
-    
+    }, []);
+
     function handleChange(e: ChangeEvent<HTMLInputElement>) {
         const { name, value } = e.target;
         setUserData(prev => ({
@@ -61,14 +65,16 @@ const Register: React.FC = () => {
         if (status == 200) {
             setCookie('user', data, { path: '/' });
             navigate('/account-type');
+        } else if (status == 201) {
+            notify('User already exists.');
         }
 
         setUserData({
             username: '',
             email: '',
             password: '',
-            lat:0,
-            long:0
+            lat: 0,
+            long: 0
         });
     }
     return (
@@ -104,7 +110,7 @@ const Register: React.FC = () => {
                     <p className=" text-xs" >Already have an account ?<Link to='/login' > Login</Link></p>
                 </form>
             </Mobile>
-
+            <ToastContainer />
         </div>
     )
 }

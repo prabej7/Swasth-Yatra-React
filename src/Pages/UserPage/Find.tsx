@@ -69,6 +69,7 @@ const Find: React.FC = () => {
         lat: 0,
         lon: 0
     });
+    
     useEffect(() => {
         axios.get(`http://localhost:5000/allAdmin`).then((response: AxiosResponse) => {
             const { data, status } = response;
@@ -157,6 +158,9 @@ const Find: React.FC = () => {
         _id: ''
     });
     const [doc, setDoc] = useState<string>('');
+    function handlePopup(_id: string){
+
+    }
     async function handleClick(_id: string) {
         setClick(true);
         setSelected({
@@ -188,11 +192,14 @@ const Find: React.FC = () => {
     }
 
     function handleDirection(postion: Location) {
-        console.log(postion);
         setHostLocation({
             lat: postion.lat,
             lon: postion.lon
         });
+    }
+
+    function handleDoctors(){
+        setClick(true);
     }
     return (
         <div>
@@ -220,6 +227,8 @@ const Find: React.FC = () => {
                             <div className="btn1">
                                 <button className="btn btn-square btn-sm" onClick={() => {
                                     setClick(false);
+                                    setSelected({name:'',_id:''});
+                                    setForm(false);
 
                                 }} >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -285,7 +294,7 @@ const Find: React.FC = () => {
                                                 <FaRoute className=" text-white text-xl" />
                                             </div>
                                             <div className=" flex justify-evenly items-center left-60 top-72 cursor-pointer  bg-black px-3 py-3  rounded-full"
-                                                onClick={() => handleDirection({ lat: user.lat, lon: user.lon })}  >
+                                                onClick={() =>handleDoctors()}>
                                                 <FaUserDoctor className=" text-white text-xl" onClick={() => handleClick(user._id)} />
                                             </div>
                                         </div>

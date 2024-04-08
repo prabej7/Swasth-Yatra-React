@@ -18,7 +18,7 @@ import { setUserData } from '../States/Slices/UserData';
 import Table from './Components/Table';
 import AddDoctors from './Components/AddDoctors';
 const AdminDoctors = () => {
-    
+
     const [page, setPage] = useState<string>('dash');
     const dispatch = useAppDispatch();
     const { username, email, _id } = useAppSelector((state) => {
@@ -27,24 +27,12 @@ const AdminDoctors = () => {
     const [cookie, setCookie, removeCookie] = useCookies(['user']);
     const [pageCookie, setPageCookie, removePageCookie] = useCookies(['page']);
     const navigate = useNavigate();
-    useEffect(()=>{
-        if(cookie && cookie.user){
-            let data = {
-                _id: cookie.user._id,
-            }
-            axios.post(`${url}getUser`,data).then((response)=>{
-                setCookie('user',response.data,{path:'/'});
-            })
-            if(cookie.user.type !== 'admin'){
-                navigate('/account');
-            }
-        }
-    });
+    
     useEffect(() => {
         if (!(cookie && cookie.user)) {
             navigate('/login');
         } else {
-            setPageCookie('page',page,{path:'/'});
+            setPageCookie('page', page, { path: '/admin' });
             let data = {
                 username: cookie.user.username,
                 email: cookie.user.email,
@@ -52,7 +40,33 @@ const AdminDoctors = () => {
             };
             dispatch(setUserData(data));
         }
-    },[cookie]);
+        if (cookie && cookie.user) {
+            let data = {
+                _id: cookie.user._id,
+            }
+            axios.post(`${url}getUser`, data).then((response) => {
+                setCookie('user', response.data, { path: '/' });
+            })
+            if (cookie.user.type !== 'admin') {
+                navigate('/account');
+            }
+        }
+    }, []);
+
+    // useEffect(() => {
+    //     if (!(cookie && cookie.user)) {
+    //         navigate('/login');
+    //     } else {
+    //         setPageCookie('page', page, { path: '/admin' });
+    //         let data = {
+    //             username: cookie.user.username,
+    //             email: cookie.user.email,
+    //             _id: cookie.user._id
+    //         };
+    //         dispatch(setUserData(data));
+    //     }
+    // }, [cookie, page, navigate, setPageCookie, dispatch]);
+
 
     function handleNavigate() {
         navigate('/hello');
@@ -70,11 +84,11 @@ const AdminDoctors = () => {
 
     function handlePage(page: string) {
         setPage(page);
-        setPageCookie('page',page,{path:'/admin'});
+        setPageCookie('page', page, { path: '/admin' });
         navigate(`/${page}`);
     }
     return (
-        <motion.div animate={{ x: click ? -320 : 0 }}style={{paddingLeft:click?'20px':''}} className="h-screen flex">
+        <motion.div animate={{ x: click ? -320 : 0 }} style={{ paddingLeft: click ? '20px' : '' }} className="h-screen flex">
             <IoMenuSharp className='absolute z-10 cursor-pointer text-white text-3xl left-80 ml-5 top-10 ' style={{ color: click ? 'black' : 'black', display: click ? 'block' : 'none' }} onClick={hanldeClick} />
             <motion.div style={{ zIndex: 0 }} data-theme="black" className="menu h-screen w-80"
                 animate={{ x: click ? -320 : 0 }}

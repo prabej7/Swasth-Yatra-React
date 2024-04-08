@@ -16,6 +16,7 @@ interface Doc {
     img: string;
     _id: string;
     __v: number;
+    attend: string;
 }
 
 interface User {
@@ -112,12 +113,18 @@ const AddDoctors = () => {
 
     useEffect(() => {
         if (cookie.user) {
-            axios.post(`${url}getUser`, cookie.user).then((response: AxiosResponse) => {
-                const { data, status } = response;
-                setDoctors(data);
-            });
+            axios.post(`${url}getUser`, cookie.user)
+                .then((response: AxiosResponse) => {
+                    const { data, status } = response;
+                    setDoctors(data);
+                })
+                .catch(error => {
+                    // Handle error
+                    console.error('Error fetching user data:', error);
+                });
         }
-    })
+    });
+    
 
     async function handleDelete(_id: string) {
         let data = {
@@ -125,7 +132,6 @@ const AddDoctors = () => {
             _id: _id
         }
         const response: AxiosResponse = await axios.post(`${url}delete`, data);
-        console.log(response);
     }
 
     function handleSelect() {
@@ -150,6 +156,21 @@ const AddDoctors = () => {
         ]));
         
 
+    }
+
+    async function handlePresence(_id : string){
+        try{
+            let data = {
+                hospital: cookie.user._id,
+                doctor_id: _id
+            }
+            const response = await axios.post(`${url}updateTime`,data);
+            console.log(response);
+        }catch(err){
+            console.log(err);
+        }finally{
+
+        }
     }
 
     return (
@@ -219,7 +240,7 @@ const AddDoctors = () => {
                                             </div>
                                         </td>
                                         <td>{element.type}</td>
-                                        <td>Present</td>
+                                        <td><button onClick={()=>handlePresence(element._id)} >{element.attend}</button></td>
                                         <td>
                                             <button className=' bg-crimsonRed rounded text-white p-2 pl-3 pr-3' onClick={() => handleDelete(element._id)}>Delete</button>
                                         </td>
